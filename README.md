@@ -8,3 +8,8 @@ Not yet tested.
 # Version 0.2
 Keras-torch splitted files added. Because, i couldn't solve dependency problem for keras dependent libraries.
 Not yet tested, (laptop issues)
+
+# Version 0.3
+Small changes on keras.py file. It's executable and it looks like it started to train successfully in pre-tests.
+When epoch 250 training is made with using DIDA 70k dataset, results will be added.
+More information for dataset: https://didadataset.github.io/DIDA/

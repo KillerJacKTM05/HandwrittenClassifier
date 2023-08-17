@@ -12,6 +12,7 @@ import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import ModelCheckpoint
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, f1_score
+from tensorflow.keras.callbacks import ReduceLROnPlateau
 import psutil
 try:
     import GPUtil as GPU
@@ -21,7 +22,7 @@ except:
     gpu = None
 
 #Path
-data_dir = 'D:\HandwrittenClassifier\HandwrittenNum'
+data_dir = '.\HandwrittenNum'
 
 #User-defined parameters
 n_epochs = int(input("Enter number of epochs: "))
@@ -30,6 +31,7 @@ batch_size = int(input("Enter batch size: "))
 #System Monitoring
 class SystemMonitor(tf.keras.callbacks.Callback):
     def on_epoch_begin(self, epoch, logs=None):
+        print("Beginning of epoch:", epoch)
         self.start_time = time.time()
 
     def on_epoch_end(self, epoch, logs=None):
@@ -74,8 +76,10 @@ model = tf.keras.Sequential([
 
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 model_checkpoint = ModelCheckpoint('best_model.h5', save_best_only=True, monitor='val_loss', mode='min', verbose=1)
+#Additional callback: Reduce learning rate when 'val_loss' has stopped improving
+reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.001, verbose=1)
 #Train the model
-model.fit(train_gen, epochs=n_epochs, validation_data=val_gen, callbacks=[SystemMonitor(), model_checkpoint])
+model.fit(train_gen, epochs=n_epochs, validation_data=val_gen, callbacks=[SystemMonitor(), model_checkpoint, reduce_lr])
 
 #Predictions
 val_gen.reset()

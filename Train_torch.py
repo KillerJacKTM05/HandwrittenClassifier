@@ -13,7 +13,7 @@ data_transform = transforms.Compose([
 ])
 
 #Path
-data_dir = 'D:\HandwrittenClassifier\HandwrittenNum'
+data_dir = '.\HandwrittenNum'
 #User-defined parameters
 n_epochs = int(input("Enter number of epochs: "))
 batch_size = int(input("Enter batch size: "))
