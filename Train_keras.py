@@ -5,7 +5,6 @@ Created on Sat Aug 12 21:18:15 2023
 @author: doguk
 """
 
-import os
 import time
 import numpy as np
 import tensorflow as tf
@@ -13,6 +12,8 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import ModelCheckpoint
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, f1_score
 from tensorflow.keras.callbacks import ReduceLROnPlateau
+import matplotlib.pyplot as plt
+import random
 import psutil
 try:
     import GPUtil as GPU
@@ -65,19 +66,36 @@ val_gen = datagen.flow_from_directory(
     subset='validation',
     shuffle=False
 )
+#plot a sample image
+sample_training_images, _ = next(train_gen)
+
+def plotImages(images_arr):
+    fig, axes = plt.subplots(1, 1, figsize=(5, 5))
+    axes.imshow(images_arr[0])
+    axes.axis('off')
+    plt.tight_layout()
+    plt.show()
+
+plotImages(sample_training_images[:1])
+
 
 #Model
 model = tf.keras.Sequential([
-    tf.keras.layers.Flatten(input_shape=(28, 28, 3)),
+    tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 3)),
+    tf.keras.layers.MaxPooling2D((2, 2)),
+    tf.keras.layers.Flatten(),
     tf.keras.layers.Dense(512, activation='relu'),
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dense(128, activation='relu'),
     tf.keras.layers.Dropout(0.2),
     tf.keras.layers.Dense(10, activation='softmax')
 ])
 
-model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 model_checkpoint = ModelCheckpoint('best_model.h5', save_best_only=True, monitor='val_loss', mode='min', verbose=1)
 #Additional callback: Reduce learning rate when 'val_loss' has stopped improving
-reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.001, verbose=1)
+reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.0004, verbose=1)
 #Train the model
 model.fit(train_gen, epochs=n_epochs, validation_data=val_gen, callbacks=[SystemMonitor(), model_checkpoint, reduce_lr])
 
